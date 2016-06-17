@@ -1,6 +1,10 @@
 package com.ppi.api.model;
 
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Account
@@ -10,6 +14,8 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "accounts")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Account extends BaseEntity {
     private String name;
     private AccountType type;
@@ -21,6 +27,16 @@ public class Account extends BaseEntity {
     private int bondPct;
     @Column(name = "stock_pct")
     private int stockPct;
+    @Column(name = "owner_id", insertable = false, updatable = false)
+    private String ownerId;
+    @ManyToOne
+    @XmlTransient
+    @JoinColumn(name = "owner_id")
+    private NestupUser owner;
+
+    public Account() {
+        super(null);
+    }
 
     public String getName() {
         return name;
@@ -76,6 +92,18 @@ public class Account extends BaseEntity {
 
     public void setStockPct(int stockPct) {
         this.stockPct = stockPct;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public NestupUser getOwner() {
+        return owner;
+    }
+
+    public void setOwner(NestupUser owner) {
+        this.owner = owner;
     }
 
     @Override

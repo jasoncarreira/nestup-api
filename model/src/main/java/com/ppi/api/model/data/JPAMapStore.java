@@ -1,5 +1,6 @@
-package com.ppi.api.data;
+package com.ppi.api.model.data;
 
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MapStore;
 import com.ppi.api.model.BaseEntity;
 
@@ -13,17 +14,11 @@ import java.util.*;
  */
 public class JPAMapStore<V extends BaseEntity> implements MapStore<String, V> {
     private BaseEntityRepository<V> repository;
+    private HazelcastInstance hazelcastInstance;
 
-    public JPAMapStore(BaseEntityRepository<V> repository) {
+    public JPAMapStore(BaseEntityRepository<V> repository, HazelcastInstance hazelcastInstance) {
         this.repository = repository;
-    }
-
-    public BaseEntityRepository<V> getRepository() {
-        return repository;
-    }
-
-    public void setRepository(BaseEntityRepository<V> repository) {
-        this.repository = repository;
+        this.hazelcastInstance = hazelcastInstance;
     }
 
     public void store(String key, V value) {
@@ -39,7 +34,9 @@ public class JPAMapStore<V extends BaseEntity> implements MapStore<String, V> {
     }
 
     public V load(String key) {
-        return repository.findOne(key);
+        V entity = repository.findOne(key);
+        if (entity != null) entity.setHazelcastInstance(hazelcastInstance);
+        return entity;
     }
 
     // override this method after implementing deleteAll in your custom repository implementation
@@ -55,13 +52,15 @@ public class JPAMapStore<V extends BaseEntity> implements MapStore<String, V> {
         Set<V> allById = repository.findAllById(collection);
         for (V next : allById) {
             map.put(next.getId(), next);
+            next.setHazelcastInstance(hazelcastInstance);
         }
         return map;
     }
 
     // override this method after implementing findAllIds in your custom repository implementation
     public Set<String> loadAllKeys() {
-        return repository.findAllIds();
+        Set<String> ids = repository.findAllIds();
+        return ids;
     }
 }
 

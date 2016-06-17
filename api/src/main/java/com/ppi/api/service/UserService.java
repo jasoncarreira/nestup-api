@@ -5,6 +5,7 @@ import com.ppi.api.model.NestupUser;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 
 /**
  * UserService
@@ -18,7 +19,7 @@ import javax.ws.rs.*;
 @Consumes("application/json")
 public class UserService extends BaseService<NestupUser> {
     public UserService() {
-        super("users");
+        super(NestupUser.MAP_NAME);
     }
 
     @PUT
@@ -26,9 +27,8 @@ public class UserService extends BaseService<NestupUser> {
     public Account addAccount(@PathParam("id") String id, Account account) {
         NestupUser user = getOne(id);
         user.getAccounts().add(account);
+        account.setOwner(user);
         update(id, user);
         return account;
     }
-
-
 }

@@ -43,16 +43,17 @@ public abstract class BaseService<T extends BaseEntity> {
     @PUT
     @Path("{id}")
     public Response update(@PathParam("id") String id, T entity) {
-        getMap().replace(id, entity);
+        doUpdate(id, entity);
 
         return buildResponse(entity);
     }
 
-    @POST
-    public Response create(T entity) {
-        getMap().put(entity.getId(), entity);
+    void doUpdate(String id, T entity) {
+        getMap().replace(id, entity);
+    }
 
-        return buildResponse(entity);
+    void doCreate(T entity) {
+        getMap().put(entity.getId(), entity);
     }
 
     @DELETE

@@ -1,4 +1,4 @@
-package com.ppi.api.data;
+package com.ppi.api.model.data;
 
 import com.ppi.api.model.NestupUser;
 import org.springframework.data.jpa.repository.Query;

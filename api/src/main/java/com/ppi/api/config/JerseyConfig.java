@@ -1,5 +1,6 @@
 package com.ppi.api.config;
 
+import com.ppi.api.service.OrganizationService;
 import com.ppi.api.service.UserService;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.annotation.Configuration;
@@ -14,5 +15,6 @@ import org.springframework.context.annotation.Configuration;
 public class JerseyConfig extends ResourceConfig {
     public JerseyConfig() {
         register(UserService.class);
+        register(OrganizationService.class);
     }
 }

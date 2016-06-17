@@ -4,11 +4,18 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapIndexConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.ppi.api.data.JPAMapStore;
-import com.ppi.api.data.UserRepository;
+import com.hazelcast.core.HazelcastInstance;
+import com.ppi.api.model.BaseEntity;
+import com.ppi.api.model.Organization;
+import com.ppi.api.model.data.BaseEntityRepository;
+import com.ppi.api.model.data.JPAMapStore;
+import com.ppi.api.model.data.OrganizationRepository;
+import com.ppi.api.model.data.UserRepository;
+import com.ppi.api.model.NestupUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.repository.CrudRepository;
 
 /**
  * HazelcastConfiguration
@@ -22,19 +29,31 @@ public class HazelcastConfiguration {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    OrganizationRepository organizationRepository;
+
+    @Autowired
+    HazelcastInstance hazelcastInstance;
+
     @Bean
     public Config config() {
-        MapStoreConfig mapStoreConfig = new MapStoreConfig();
-        mapStoreConfig.setInitialLoadMode(MapStoreConfig.InitialLoadMode.EAGER);
-        mapStoreConfig.setImplementation(new JPAMapStore<>(userRepository));
-        MapConfig mapConfig = new MapConfig("users");
-        mapConfig.setMapStoreConfig(mapStoreConfig);
+        MapConfig userMapConfig = buildMapConfig(NestupUser.MAP_NAME, userRepository);
         MapIndexConfig emailIndexConfig = new MapIndexConfig("email", false);
-        mapConfig.addMapIndexConfig(emailIndexConfig);
-        return new Config().addMapConfig(mapConfig);
+        userMapConfig.addMapIndexConfig(emailIndexConfig);
+        MapConfig organizationMapConfig = buildMapConfig(Organization.MAP_NAME, organizationRepository);
+        return new Config().addMapConfig(userMapConfig).addMapConfig(organizationMapConfig);
     }
 
-//    @Bean
+    private <T extends BaseEntity> MapConfig buildMapConfig(String mapName, BaseEntityRepository<T> repository) {
+        MapStoreConfig mapStoreConfig = new MapStoreConfig();
+        mapStoreConfig.setInitialLoadMode(MapStoreConfig.InitialLoadMode.EAGER);
+        mapStoreConfig.setImplementation(new JPAMapStore<>(repository, hazelcastInstance));
+        MapConfig mapConfig = new MapConfig(mapName);
+        mapConfig.setMapStoreConfig(mapStoreConfig);
+        return mapConfig;
+    }
+
+    //    @Bean
 //    public JPAMapStore<String, Account> buildAccountStore(AccountRepository accountRepository) {
 //        JPAMapStore<String, Account> jpaMapStore = new JPAMapStore<>();
 //        jpaMapStore.setRepository(accountRepository);

@@ -1,7 +1,15 @@
 package com.ppi.api.model;
 
+import com.hazelcast.core.IMap;
+import com.hazelcast.query.EntryObject;
+import com.hazelcast.query.Predicate;
+import com.hazelcast.query.PredicateBuilder;
+
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
 
 /**
@@ -11,16 +19,37 @@ import java.util.List;
  * @version 1.0
  */
 @Entity
-@Table(name = "nestup_user")
+@Table(name = "users")
 @XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class NestupUser extends BaseEntity {
+    public static final String MAP_NAME = "users";
+
     private String firstName;
     private String lastName;
     private String email;
     private String password;
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "owner_id")
+    private int age;
+    @Column(name = "retirement_age")
+    private int retirementAge;
+    private double salary;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @XmlTransient
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @Transient
+    @XmlTransient
+    @Column(name = "organization_id", insertable = false, updatable = false)
+    private String organizationId;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "owner")
     private List<Account> accounts;
+
+    public NestupUser() {
+        super(MAP_NAME);
+    }
 
     public String getFirstName() {
         return firstName;
@@ -52,6 +81,47 @@ public class NestupUser extends BaseEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public int getRetirementAge() {
+        return retirementAge;
+    }
+
+    public void setRetirementAge(int retirementAge) {
+        this.retirementAge = retirementAge;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public void setSalary(double salary) {
+        this.salary = salary;
+    }
+
+    public Organization getOrganization() {
+        if (organization == null && organizationId != null && hazelcastInstance != null) {
+            IMap<String, Organization> map = hazelcastInstance.getMap(Organization.MAP_NAME);
+            organization = map.get(organizationId);
+        }
+        return organization;
+    }
+
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
+        this.organizationId = (organization != null) ? organization.getId() : null;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
     }
 
     public List<Account> getAccounts() {

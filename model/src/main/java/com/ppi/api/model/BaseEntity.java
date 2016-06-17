@@ -1,7 +1,13 @@
 package com.ppi.api.model;
 
+import com.hazelcast.core.HazelcastInstance;
+
 import javax.annotation.Generated;
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
@@ -13,21 +19,37 @@ import java.util.UUID;
  * @version 1.0
  */
 @MappedSuperclass
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public abstract class BaseEntity implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    @Transient
+    @XmlTransient
+    protected transient HazelcastInstance hazelcastInstance;
+    @Transient
+    @XmlTransient
+    private transient String mapName;
 
     @Id
     @Column(name = "id", nullable = false, columnDefinition = "VARCHAR(64)")
     protected String id = UUID.randomUUID().toString();
 
-    @Column(name = "created_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
+    public BaseEntity(String mapName) {
+        this.mapName = mapName;
+    }
 
-    @Column(name = "updated_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt;
+//    @Column(name = "created_at")
+//    @Temporal(TemporalType.TIMESTAMP)
+//    private Date createdAt;
+//
+//    @Column(name = "updated_at")
+//    @Temporal(TemporalType.TIMESTAMP)
+//    private Date updatedAt;
+
+
+    public String getMapName() {
+        return mapName;
+    }
 
     public String getId() {
         return id;
@@ -37,21 +59,21 @@ public abstract class BaseEntity implements Serializable {
         this.id = id;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+//    public Date getCreatedAt() {
+//        return createdAt;
+//    }
+//
+//    public void setCreatedAt(Date createdAt) {
+//        this.createdAt = createdAt;
+//    }
+//
+//    public Date getUpdatedAt() {
+//        return updatedAt;
+//    }
+//
+//    public void setUpdatedAt(Date updatedAt) {
+//        this.updatedAt = updatedAt;
+//    }
 
     @Override
     public boolean equals(Object o) {
@@ -67,5 +89,9 @@ public abstract class BaseEntity implements Serializable {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
+        this.hazelcastInstance = hazelcastInstance;
     }
 }

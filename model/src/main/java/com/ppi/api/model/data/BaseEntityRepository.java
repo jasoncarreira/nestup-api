@@ -1,7 +1,6 @@
-package com.ppi.api.data;
+package com.ppi.api.model.data;
 
 import com.ppi.api.model.BaseEntity;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
