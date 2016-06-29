@@ -18,15 +18,16 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Account extends BaseEntity {
     private String name;
+    @Enumerated(EnumType.STRING)
     private AccountType type;
     private double balance;
     private double contribution;
     @Column(name = "cash_pct")
-    private int cashPct;
+    private int cashPercentage;
     @Column(name = "bond_pct")
-    private int bondPct;
+    private int bondPercentage;
     @Column(name = "stock_pct")
-    private int stockPct;
+    private int stockPercentage;
     @Column(name = "owner_id", insertable = false, updatable = false)
     private String ownerId;
     @ManyToOne
@@ -70,28 +71,28 @@ public class Account extends BaseEntity {
         this.contribution = contribution;
     }
 
-    public int getCashPct() {
-        return cashPct;
+    public int getCashPercentage() {
+        return cashPercentage;
     }
 
-    public void setCashPct(int cashPct) {
-        this.cashPct = cashPct;
+    public void setCashPercentage(int cashPct) {
+        this.cashPercentage = cashPct;
     }
 
-    public int getBondPct() {
-        return bondPct;
+    public int getBondPercentage() {
+        return bondPercentage;
     }
 
-    public void setBondPct(int bondPct) {
-        this.bondPct = bondPct;
+    public void setBondPercentage(int bondPct) {
+        this.bondPercentage = bondPct;
     }
 
-    public int getStockPct() {
-        return stockPct;
+    public int getStockPercentage() {
+        return stockPercentage;
     }
 
-    public void setStockPct(int stockPct) {
-        this.stockPct = stockPct;
+    public void setStockPercentage(int stockPct) {
+        this.stockPercentage = stockPct;
     }
 
     public String getOwnerId() {
@@ -114,9 +115,9 @@ public class Account extends BaseEntity {
                 ", type=" + type +
                 ", balance=" + balance +
                 ", contribution=" + contribution +
-                ", cashPct=" + cashPct +
-                ", bondPct=" + bondPct +
-                ", stockPct=" + stockPct +
+                ", cashPct=" + cashPercentage +
+                ", bondPct=" + bondPercentage +
+                ", stockPct=" + stockPercentage +
                 '}';
     }
 }

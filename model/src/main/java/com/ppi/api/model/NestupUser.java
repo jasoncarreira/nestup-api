@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.util.List;
+import java.util.Set;
 
 /**
  * User
@@ -19,7 +20,7 @@ import java.util.List;
  * @version 1.0
  */
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {@Index(columnList = "email", unique = true)})
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class NestupUser extends BaseEntity {
@@ -46,6 +47,12 @@ public class NestupUser extends BaseEntity {
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "owner")
     private List<Account> accounts;
+
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles;
 
     public NestupUser() {
         super(MAP_NAME);
@@ -132,6 +139,14 @@ public class NestupUser extends BaseEntity {
         this.accounts = accounts;
     }
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
     @Override
     public String toString() {
         return "NestupUser{" +
@@ -141,6 +156,7 @@ public class NestupUser extends BaseEntity {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", accounts=" + accounts +
+                ", roles=" + roles +
                 '}';
     }
 }

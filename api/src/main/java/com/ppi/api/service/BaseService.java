@@ -3,11 +3,16 @@ package com.ppi.api.service;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.ppi.api.model.BaseEntity;
+import com.ppi.api.model.NestupUser;
+import com.ppi.api.model.Role;
+import com.ppi.api.security.NestupSecurityContext;
+import com.ppi.api.security.Secured;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Collection;
@@ -25,12 +30,16 @@ public abstract class BaseService<T extends BaseEntity> {
     @Context
     private UriInfo uriInfo;
 
+    @Context
+    SecurityContext securityContext;
+
     BaseService(String mapName) {
         this.mapName = mapName;
     }
 
     @GET
     @Path("{id}")
+    @Secured(Role.AUTHENTICATED_USER)
     public T getOne(@PathParam("id") String id) {
         return getMap().get(id);
     }
@@ -42,6 +51,7 @@ public abstract class BaseService<T extends BaseEntity> {
 
     @PUT
     @Path("{id}")
+    @Secured({Role.NESTUP_ADMIN, Role.COMPANY_ADMIN})
     public Response update(@PathParam("id") String id, T entity) {
         doUpdate(id, entity);
 
@@ -52,12 +62,13 @@ public abstract class BaseService<T extends BaseEntity> {
         getMap().replace(id, entity);
     }
 
-    void doCreate(T entity) {
+    public void doCreate(T entity) {
         getMap().put(entity.getId(), entity);
     }
 
     @DELETE
     @Path("{id}")
+    @Secured({Role.NESTUP_ADMIN,Role.COMPANY_ADMIN})
     public T delete(@PathParam("id") String id) {
         return getMap().remove(id);
     }
@@ -73,5 +84,9 @@ public abstract class BaseService<T extends BaseEntity> {
                 .build();
 
         return Response.created(location).build();
+    }
+
+    protected NestupUser getUser() {
+        return ((NestupSecurityContext)securityContext).getUser();
     }
 }

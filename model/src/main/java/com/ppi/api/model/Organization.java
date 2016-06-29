@@ -24,7 +24,6 @@ public class Organization extends BaseEntity {
     private String name;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "organization")
-    @XmlTransient
     private transient Collection<NestupUser> users;
 
     public Organization() {

@@ -24,15 +24,16 @@ import java.util.UUID;
 public abstract class BaseEntity implements Serializable {
 
     @Transient
-    @XmlTransient
     protected transient HazelcastInstance hazelcastInstance;
     @Transient
-    @XmlTransient
     private transient String mapName;
 
     @Id
     @Column(name = "id", nullable = false, columnDefinition = "VARCHAR(64)")
     protected String id = UUID.randomUUID().toString();
+
+    public BaseEntity() {
+    }
 
     public BaseEntity(String mapName) {
         this.mapName = mapName;

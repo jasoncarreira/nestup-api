@@ -59,6 +59,11 @@
             <artifactId>commons-dbcp2</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+            <version>0.5.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.ppi.nestup.api</groupId>
             <artifactId>model</artifactId>
             <version>${version}</version>

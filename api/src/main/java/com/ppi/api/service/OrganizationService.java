@@ -2,6 +2,8 @@ package com.ppi.api.service;
 
 import com.ppi.api.model.NestupUser;
 import com.ppi.api.model.Organization;
+import com.ppi.api.model.Role;
+import com.ppi.api.security.Secured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,7 @@ public class OrganizationService extends BaseService<Organization> {
 
     @PUT
     @Path("{id}/addUser")
+    @Secured({Role.COMPANY_ADMIN, Role.NESTUP_ADMIN})
     public NestupUser addAccount(@PathParam("id") String id, NestupUser user) {
         Organization organization = getOne(id);
         user.setOrganization(organization);
@@ -38,6 +41,7 @@ public class OrganizationService extends BaseService<Organization> {
 
 
     @POST
+    @Secured(Role.NESTUP_ADMIN)
     public Response create(Organization entity) {
         doCreate(entity);
 
