@@ -3,7 +3,7 @@ package com.ppi.api.security;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicReference;
 import com.hazelcast.core.IMap;
-import com.ppi.api.model.NestupUser;
+import com.ppi.api.model.User;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwk.RsaJwkGenerator;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -60,7 +60,7 @@ public class TokenStore {
             .build(); // create the JwtConsumer instance
     }
 
-    public String generateToken(NestupUser user) throws Exception {
+    public String generateToken(User user) throws Exception {
         String token = buildToken(user);
         jwtMap.put(token, user.getEmail());
         return token;
@@ -74,7 +74,7 @@ public class TokenStore {
         return email;
     }
 
-    private String buildToken(NestupUser user) throws JoseException {
+    private String buildToken(User user) throws JoseException {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         claims.setIssuer("Nestup");  // who creates the token and signs it

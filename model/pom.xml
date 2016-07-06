@@ -20,7 +20,7 @@
         <!--<pluginRepository>-->
             <!--<id>biggerbytes</id>-->
             <!--<url>http://www.biggerbytes.be/maven2</url>-->
-            <!--&lt;!&ndash;  &ndash;&gt;-->
+
             <!--<snapshots>-->
                 <!--<enabled>true</enabled>-->
                 <!--<checksumPolicy>fail</checksumPolicy>-->
@@ -39,7 +39,6 @@
             <!--<plugin>-->
                 <!--<groupId>be.biggerbytes</groupId>-->
                 <!--<artifactId>externalizer-maven-plugin</artifactId>-->
-                <!--<version>LATEST</version>-->
                 <!--<executions>-->
                     <!--<execution>-->
                         <!--<id>optimize-classes</id>-->

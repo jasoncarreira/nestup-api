@@ -1,10 +1,14 @@
 package com.ppi.api.model;
 
+import com.hazelcast.nio.ObjectDataInput;
+import com.hazelcast.nio.ObjectDataOutput;
+
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import java.io.IOException;
 
 /**
  * Account
@@ -12,11 +16,12 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author jcarreira@gmail.com
  * @version 1.0
  */
+@SuppressWarnings("unused")
 @Entity
 @Table(name = "accounts")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Account extends BaseEntity {
+public class Account extends BaseEntity<Account> implements UserOwned{
     private String name;
     @Enumerated(EnumType.STRING)
     private AccountType type;
@@ -33,7 +38,7 @@ public class Account extends BaseEntity {
     @ManyToOne
     @XmlTransient
     @JoinColumn(name = "owner_id")
-    private NestupUser owner;
+    private User owner;
 
     public Account() {
         super(null);
@@ -95,16 +100,28 @@ public class Account extends BaseEntity {
         this.stockPercentage = stockPct;
     }
 
+    @Override
     public String getOwnerId() {
         return ownerId;
     }
 
-    public NestupUser getOwner() {
+    public User getOwner() {
         return owner;
     }
 
-    public void setOwner(NestupUser owner) {
+    public void setOwner(User owner) {
         this.owner = owner;
+    }
+
+    @Override
+    public void copyFrom(Account other) {
+        this.name = other.name;
+        this.type = other.type;
+        this.balance = other.balance;
+        this.contribution = other.contribution;
+        this.cashPercentage = other.cashPercentage;
+        this.bondPercentage = other.bondPercentage;
+        this.stockPercentage = other.stockPercentage;
     }
 
     @Override
@@ -119,5 +136,31 @@ public class Account extends BaseEntity {
                 ", bondPct=" + bondPercentage +
                 ", stockPct=" + stockPercentage +
                 '}';
+    }
+
+    @Override
+    public void writeData(ObjectDataOutput out) throws IOException {
+        out.writeUTF(id);
+        out.writeUTF(name);
+        out.writeObject(type);
+        out.writeDouble(balance);
+        out.writeDouble(contribution);
+        out.writeInt(cashPercentage);
+        out.writeInt(bondPercentage);
+        out.writeInt(stockPercentage);
+        out.writeUTF(ownerId);
+    }
+
+    @Override
+    public void readData(ObjectDataInput in) throws IOException {
+        this.id = in.readUTF();
+        this.name = in.readUTF();
+        this.type = in.readObject();
+        this.balance = in.readDouble();
+        this.contribution = in.readDouble();
+        this.cashPercentage = in.readInt();
+        this.bondPercentage = in.readInt();
+        this.stockPercentage = in.readInt();
+        this.ownerId = in.readUTF();
     }
 }

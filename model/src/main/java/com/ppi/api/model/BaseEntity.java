@@ -1,6 +1,7 @@
 package com.ppi.api.model;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.nio.serialization.DataSerializable;
 
 import javax.annotation.Generated;
 import javax.persistence.*;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @MappedSuperclass
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public abstract class BaseEntity implements Serializable {
+public abstract class BaseEntity<T extends BaseEntity> implements Serializable, DataSerializable {
 
     @Transient
     protected transient HazelcastInstance hazelcastInstance;
@@ -95,4 +96,6 @@ public abstract class BaseEntity implements Serializable {
     public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance;
     }
+
+    public abstract void copyFrom(T other);
 }

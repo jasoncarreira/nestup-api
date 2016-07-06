@@ -1,11 +1,12 @@
 package com.ppi.api.security;
 
-import com.ppi.api.model.NestupUser;
+import com.ppi.api.model.User;
 import com.ppi.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -28,12 +29,12 @@ public class SecurityService {
 
         try {
             // Authenticate the user using the credentials provided
-            NestupUser nestupUser = authenticate(credentials.getEmail(), credentials.getPassword());
+            User user = authenticate(credentials.getEmail(), credentials.getPassword());
 
             // Issue a token for the user
-            String token = issueToken(nestupUser);
+            String token = issueToken(user);
 
-            TokenResponse response = new TokenResponse(token,nestupUser);
+            TokenResponse response = new TokenResponse(token, user);
 
             // Return the token on the response
             return Response.ok(response).build();
@@ -47,7 +48,8 @@ public class SecurityService {
     @Secured
     @Produces("application/json")
     @Path("me")
-    public NestupUser getAuthenticatedUser(@Context SecurityContext securityContext) {
+    public User getAuthenticatedUser(@Context ContainerRequestContext context) {
+        SecurityContext securityContext = context.getSecurityContext();
         return ((NestupSecurityContext) securityContext).getUser();
     }
 
@@ -55,35 +57,37 @@ public class SecurityService {
     @Produces("application/json")
     @Consumes({"application/json","application/x-www-form-urlencoded"})
     @Path("signup")
-    public Response signupUser(NestupUser nestupUser) {
+    public Response signupUser(@Context ContainerRequestContext context, User user) {
         try {
-            if (nestupUser.getId().trim().length() > 0) {
-                userService.update(nestupUser.getId(),nestupUser);
+            if (user.getId().trim().length() > 0) {
+                userService.update(context, user.getId(), user);
             } else {
-                userService.doCreate(nestupUser);
+                userService.doCreate(user);
             }
 
             // Issue a token for the user
-            String token = issueToken(nestupUser);
+            String token = issueToken(user);
+
+            TokenResponse response = new TokenResponse(token, user);
 
             // Return the token on the response
-            return Response.ok(token).build();
+            return Response.ok(response).build();
 
         } catch (Exception e) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
     }
 
-    private NestupUser authenticate(String email, String password) throws Exception {
-        NestupUser nestupUser = userService.findByEmail(email);
+    private User authenticate(String email, String password) throws Exception {
+        User user = userService.findByEmail(email);
         String hashedPassword = userService.hash(password);
-        if (!nestupUser.getPassword().equals(hashedPassword)) {
+        if (!user.getPassword().equals(hashedPassword)) {
             throw new Exception("Passwords don't match!");
         }
-        return nestupUser;
+        return user;
     }
 
-    private String issueToken(NestupUser nestupUser) throws Exception {
-        return tokenStore.generateToken(nestupUser);
+    private String issueToken(User user) throws Exception {
+        return tokenStore.generateToken(user);
     }
 }

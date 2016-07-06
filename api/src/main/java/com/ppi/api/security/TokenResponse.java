@@ -1,6 +1,6 @@
 package com.ppi.api.security;
 
-import com.ppi.api.model.NestupUser;
+import com.ppi.api.model.User;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -10,12 +10,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TokenResponse {
     private String token;
-    private NestupUser user;
+    private User user;
 
     public TokenResponse() {
     }
 
-    public TokenResponse(String token, NestupUser user) {
+    public TokenResponse(String token, User user) {
         this.token = token;
         this.user = user;
     }
@@ -28,11 +28,11 @@ public class TokenResponse {
         this.token = token;
     }
 
-    public NestupUser getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(NestupUser user) {
+    public void setUser(User user) {
         this.user = user;
     }
 }

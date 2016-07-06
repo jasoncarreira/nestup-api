@@ -2,20 +2,25 @@ package com.ppi.api.service;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.hazelcast.query.PredicateBuilder;
 import com.ppi.api.model.BaseEntity;
-import com.ppi.api.model.NestupUser;
 import com.ppi.api.model.Role;
+import com.ppi.api.model.User;
 import com.ppi.api.security.NestupSecurityContext;
 import com.ppi.api.security.Secured;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.inject.Singleton;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * BaseService
@@ -23,6 +28,8 @@ import java.util.Collection;
  * @author jcarreira@gmail.com
  * @version 1.0
  */
+@Singleton
+@Transactional("hazelCastTransactionManager")
 public abstract class BaseService<T extends BaseEntity> {
     private final String mapName;
     @Autowired
@@ -30,36 +37,60 @@ public abstract class BaseService<T extends BaseEntity> {
     @Context
     private UriInfo uriInfo;
 
-    @Context
-    SecurityContext securityContext;
-
     BaseService(String mapName) {
         this.mapName = mapName;
     }
 
     @GET
     @Path("{id}")
-    @Secured(Role.AUTHENTICATED_USER)
-    public T getOne(@PathParam("id") String id) {
-        return getMap().get(id);
+    @Secured({Role.NESTUP_ADMIN, Role.AUTHENTICATED_USER, Role.COMPANY_ADMIN})
+    public T getOne(@Context ContainerRequestContext context, @PathParam("id") String id) {
+        T t = null;
+        PredicateBuilder predicate = getPredicate(context);
+        if (predicate == null) {
+            t = getMap().get(id);
+        } else {
+            PredicateBuilder idPredicate = predicate.getEntryObject().key().equal(id);
+            predicate = predicate.and(idPredicate);
+            Collection<T> values = getMap().values(predicate);
+            if (values != null) {
+                t = values.iterator().next();
+            }
+        }
+        if (t != null) t.setHazelcastInstance(this.hazelcastInstance);
+        return t;
     }
 
     @GET
-    public Collection<T> getAll() {
-        return getMap().values();
+    @Secured({Role.NESTUP_ADMIN, Role.AUTHENTICATED_USER, Role.COMPANY_ADMIN})
+    public Collection<T> getAll(@Context ContainerRequestContext context) {
+        PredicateBuilder predicate = getPredicate(context);
+        Collection<T> values;
+        if (predicate == null) {
+            values = getMap().values();
+        } else {
+            values = getMap().values(predicate);
+        }
+        values = new HashSet<T>(values);
+        values.forEach((org) -> org.setHazelcastInstance(this.hazelcastInstance));
+        return values;
     }
 
     @PUT
     @Path("{id}")
     @Secured({Role.NESTUP_ADMIN, Role.COMPANY_ADMIN})
-    public Response update(@PathParam("id") String id, T entity) {
-        doUpdate(id, entity);
+    public Response update(@Context ContainerRequestContext context, @PathParam("id") String id, T entity) {
+        doUpdate(context, id, entity);
 
         return buildResponse(entity);
     }
 
-    void doUpdate(String id, T entity) {
-        getMap().replace(id, entity);
+    void doUpdate(@Context ContainerRequestContext context, String id, T entity) {
+        T instance = getOne(context, id);
+        if (instance != null) {
+            instance.copyFrom(entity);
+        }
+        getMap().replace(id, instance);
     }
 
     public void doCreate(T entity) {
@@ -68,9 +99,12 @@ public abstract class BaseService<T extends BaseEntity> {
 
     @DELETE
     @Path("{id}")
-    @Secured({Role.NESTUP_ADMIN,Role.COMPANY_ADMIN})
-    public T delete(@PathParam("id") String id) {
-        return getMap().remove(id);
+    @Secured({Role.NESTUP_ADMIN, Role.COMPANY_ADMIN})
+    public void delete(@Context ContainerRequestContext context, @PathParam("id") String id) {
+        T instance = getOne(context, id);
+        if (instance != null) {
+            getMap().remove(id);
+        }
     }
 
     protected IMap<String, T> getMap() {
@@ -86,7 +120,14 @@ public abstract class BaseService<T extends BaseEntity> {
         return Response.created(location).build();
     }
 
-    protected NestupUser getUser() {
-        return ((NestupSecurityContext)securityContext).getUser();
+    protected User getUser(SecurityContext securityContext) {
+        return ((NestupSecurityContext) securityContext).getUser();
+    }
+
+    protected PredicateBuilder getPredicate(ContainerRequestContext context) {
+        if (context == null)
+            return null;
+        SecurityContext securityContext = context.getSecurityContext();
+        return (securityContext != null) ? ((NestupSecurityContext) securityContext).getPredicate() : null;
     }
 }

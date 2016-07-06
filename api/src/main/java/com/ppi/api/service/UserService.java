@@ -5,12 +5,16 @@ import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.util.MD5Util;
 import com.ppi.api.model.Account;
-import com.ppi.api.model.NestupUser;
+import com.ppi.api.model.Role;
+import com.ppi.api.model.User;
+import com.ppi.api.security.DataFilter;
 import com.ppi.api.security.Secured;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Singleton;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import java.util.Collection;
 
 /**
@@ -20,28 +24,30 @@ import java.util.Collection;
  * @version 1.0
  */
 @Component
+@Singleton
 @Path("/users")
 @Produces("application/json")
 @Consumes("application/json")
-public class UserService extends BaseService<NestupUser> {
+@DataFilter(User.class)
+public class UserService extends BaseService<User> {
     public UserService() {
-        super(NestupUser.MAP_NAME);
+        super(User.MAP_NAME);
     }
 
     @Override
-    public void doCreate(NestupUser entity) {
+    public void doCreate(User entity) {
         entity.setPassword(hash(entity.getPassword()));
         super.doCreate(entity);
     }
 
     @PUT
     @Path("{id}/addAccount")
-    @Secured
-    public Account addAccount(@PathParam("id") String id, Account account) {
-        NestupUser user = getOne(id);
+    @Secured({Role.NESTUP_ADMIN, Role.COMPANY_ADMIN, Role.AUTHENTICATED_USER})
+    public Account addAccount(@Context ContainerRequestContext context, @PathParam("id") String id, Account account) {
+        User user = getOne(context,id);
         user.getAccounts().add(account);
         account.setOwner(user);
-        update(id, user);
+        update(context,id, user);
         return account;
     }
 
@@ -49,10 +55,10 @@ public class UserService extends BaseService<NestupUser> {
         return MD5Util.toMD5String(input);
     }
 
-    public NestupUser findByEmail(String email) {
+    public User findByEmail(String email) {
         EntryObject e = new PredicateBuilder().getEntryObject();
         Predicate emailPredicate = e.get( "email" ).equal( email );
-        Collection<NestupUser> values = getMap().values(emailPredicate);
+        Collection<User> values = getMap().values(emailPredicate);
         if ((values != null) && values.size() == 1) {
             return values.iterator().next();
         }

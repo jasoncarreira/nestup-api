@@ -1,6 +1,6 @@
 package com.ppi.api.security;
 
-import com.ppi.api.model.NestupUser;
+import com.ppi.api.model.User;
 import com.ppi.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,7 +46,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
             // Validate the token
             String userEmail = tokenStore.findUserEmailForToken(token);
-            NestupUser user = userService.findByEmail(userEmail);
+            User user = userService.findByEmail(userEmail);
 
             requestContext.setSecurityContext(new NestupSecurityContext(user));
 

@@ -1,10 +1,13 @@
 package com.ppi.api.model.data;
 
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MapStore;
 import com.ppi.api.model.BaseEntity;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * JPAMapStore
@@ -12,13 +15,12 @@ import java.util.*;
  * @author jcarreira@gmail.com
  * @version 1.0
  */
+@Transactional("jpaTransactionManager")
 public class JPAMapStore<V extends BaseEntity> implements MapStore<String, V> {
     private BaseEntityRepository<V> repository;
-    private HazelcastInstance hazelcastInstance;
 
-    public JPAMapStore(BaseEntityRepository<V> repository, HazelcastInstance hazelcastInstance) {
+    public JPAMapStore(BaseEntityRepository<V> repository) {
         this.repository = repository;
-        this.hazelcastInstance = hazelcastInstance;
     }
 
     public void store(String key, V value) {
@@ -35,7 +37,6 @@ public class JPAMapStore<V extends BaseEntity> implements MapStore<String, V> {
 
     public V load(String key) {
         V entity = repository.findOne(key);
-        if (entity != null) entity.setHazelcastInstance(hazelcastInstance);
         return entity;
     }
 
@@ -52,7 +53,6 @@ public class JPAMapStore<V extends BaseEntity> implements MapStore<String, V> {
         Set<V> allById = repository.findAllById(collection);
         for (V next : allById) {
             map.put(next.getId(), next);
-            next.setHazelcastInstance(hazelcastInstance);
         }
         return map;
     }

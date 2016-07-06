@@ -1,13 +1,16 @@
 package com.ppi.api.service;
 
-import com.ppi.api.model.NestupUser;
 import com.ppi.api.model.Organization;
 import com.ppi.api.model.Role;
+import com.ppi.api.model.User;
+import com.ppi.api.security.DataFilter;
 import com.ppi.api.security.Secured;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 /**
@@ -20,6 +23,7 @@ import javax.ws.rs.core.Response;
 @Path("/organizations")
 @Produces("application/json")
 @Consumes("application/json")
+@DataFilter(Organization.class)
 public class OrganizationService extends BaseService<Organization> {
     @Autowired
     UserService userService;
@@ -28,15 +32,19 @@ public class OrganizationService extends BaseService<Organization> {
         super(Organization.MAP_NAME);
     }
 
+
     @PUT
     @Path("{id}/addUser")
     @Secured({Role.COMPANY_ADMIN, Role.NESTUP_ADMIN})
-    public NestupUser addAccount(@PathParam("id") String id, NestupUser user) {
-        Organization organization = getOne(id);
-        user.setOrganization(organization);
-        user.getAccounts().forEach(account -> account.setOwner(user));
-        userService.doCreate(user);
-        return user;
+    public User addUser(@Context ContainerRequestContext context, @PathParam("id") String id, User user) {
+        Organization organization = getOne(context, id);
+        if (organization != null) {
+            user.getAccounts().forEach(account -> account.setOwner(user));
+            organization.addUser(user);
+            userService.doCreate(user);
+            return user;
+        }
+        return null;
     }
 
 
@@ -47,4 +55,6 @@ public class OrganizationService extends BaseService<Organization> {
 
         return buildResponse(entity);
     }
+
+
 }

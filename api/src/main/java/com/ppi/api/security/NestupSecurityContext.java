@@ -1,6 +1,7 @@
 package com.ppi.api.security;
 
-import com.ppi.api.model.NestupUser;
+import com.hazelcast.query.PredicateBuilder;
+import com.ppi.api.model.User;
 import com.ppi.api.model.Role;
 
 import javax.ws.rs.core.SecurityContext;
@@ -8,9 +9,10 @@ import java.security.Principal;
 
 public class NestupSecurityContext implements SecurityContext {
 
-    private final NestupUser user;
+    private final User user;
+    private PredicateBuilder predicate;
 
-    public NestupSecurityContext(NestupUser user) {
+    public NestupSecurityContext(User user) {
         this.user = user;
     }
 
@@ -19,7 +21,7 @@ public class NestupSecurityContext implements SecurityContext {
         return () -> user.getEmail();
     }
 
-    public NestupUser getUser() {
+    public User getUser() {
         return user;
     }
 
@@ -37,5 +39,13 @@ public class NestupSecurityContext implements SecurityContext {
     @Override
     public String getAuthenticationScheme() {
         return null;
+    }
+
+    public void setPredicate(PredicateBuilder predicate) {
+        this.predicate = predicate;
+    }
+
+    public PredicateBuilder getPredicate() {
+        return predicate;
     }
 }
