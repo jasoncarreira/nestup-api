@@ -135,9 +135,12 @@ public class Organization extends BaseEntity<Organization> implements Organizati
     }
 
     @Override
-    public void copyFrom(Organization other) {
+    public Organization copyFrom(Organization other) {
         this.name = other.name;
+        this.parentId = other.parentId;
+        return this;
     }
+
 
 
     @Override

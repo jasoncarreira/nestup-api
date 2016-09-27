@@ -1,8 +1,9 @@
 package com.ppi.api.model.data;
 
-import com.ppi.api.model.Organization;
+import com.ppi.api.model.Participant;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -12,8 +13,9 @@ import java.util.Set;
  * @author jcarreira@gmail.com
  * @version 1.0
  */
+@Transactional
 @Repository
-public interface OrganizationRepository extends BaseEntityRepository<Organization> {
-    @Query("SELECT id FROM Organization")
+public interface ParticipantRepository extends BaseEntityRepository<Participant> {
+    @Query("SELECT id FROM Participant")
     Set<String> findAllIds();
 }

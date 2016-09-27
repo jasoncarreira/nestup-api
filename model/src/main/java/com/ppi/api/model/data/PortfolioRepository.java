@@ -1,6 +1,6 @@
 package com.ppi.api.model.data;
 
-import com.ppi.api.model.Account;
+import com.ppi.api.model.Portfolio;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ import java.util.Set;
  */
 @Transactional
 @Repository
-public interface AccountRepository extends BaseEntityRepository<Account> {
-    @Query("SELECT id FROM Account")
+public interface PortfolioRepository extends BaseEntityRepository<Portfolio> {
+    @Query("SELECT id FROM Portfolio")
     Set<String> findAllIds();
 }

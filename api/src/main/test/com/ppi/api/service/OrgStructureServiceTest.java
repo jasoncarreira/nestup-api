@@ -60,7 +60,7 @@ public class OrgStructureServiceTest {
 
     @Before
     public void setup() {
-        User user = new User("Nestup", "Admin", "admin@nestup.com", "abc123", 40, 68, 333333, "nestup", new HashSet<>(Arrays.asList(new Role[]{Role.NESTUP_ADMIN, Role.AUTHENTICATED_USER})));
+        User user = new User("Nestup", "Admin", "admin@nestup.com", "abc123", "nestup", new HashSet<>(Arrays.asList(new Role[]{Role.NESTUP_ADMIN, Role.AUTHENTICATED_USER})));
         NestupSecurityContext securityContext = new NestupSecurityContext(user);
 
         Config config = new Config();

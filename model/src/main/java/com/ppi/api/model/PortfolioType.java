@@ -8,10 +8,10 @@ import java.io.Serializable;
  * @author jcarreira@gmail.com
  * @version 1.0
  */
-public enum AccountType implements Serializable {
+public enum PortfolioType implements Serializable {
     _401K("401k"),HSA("HSA"),ROTH_401k("ROTH_401K");
 
-    AccountType(String name) {
+    PortfolioType(String name) {
         this.name = name;
     }
 
@@ -23,6 +23,6 @@ public enum AccountType implements Serializable {
 
     @Override
     public String toString() {
-        return "AccountType{" + name + '}';
+        return "PortfolioType{" + name + '}';
     }
 }

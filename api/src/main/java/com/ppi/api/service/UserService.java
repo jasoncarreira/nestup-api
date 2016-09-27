@@ -4,17 +4,20 @@ import com.hazelcast.query.EntryObject;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.PredicateBuilder;
 import com.hazelcast.util.MD5Util;
-import com.ppi.api.model.Account;
+import com.ppi.api.model.Participant;
+import com.ppi.api.model.Portfolio;
 import com.ppi.api.model.Role;
 import com.ppi.api.model.User;
 import com.ppi.api.security.DataFilter;
 import com.ppi.api.security.Secured;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Singleton;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 import java.util.Collection;
 
 /**
@@ -30,6 +33,9 @@ import java.util.Collection;
 @Consumes("application/json")
 @DataFilter(User.class)
 public class UserService extends BaseService<User> {
+    @Autowired
+    ParticipantService participantService;
+
     public UserService() {
         super(User.MAP_NAME);
     }
@@ -38,17 +44,6 @@ public class UserService extends BaseService<User> {
     public void doCreate(User entity) {
         entity.setPassword(hash(entity.getPassword()));
         super.doCreate(entity);
-    }
-
-    @PUT
-    @Path("{id}/addAccount")
-    @Secured({Role.NESTUP_ADMIN, Role.COMPANY_ADMIN, Role.AUTHENTICATED_USER})
-    public Account addAccount(@Context ContainerRequestContext context, @PathParam("id") String id, Account account) {
-        User user = getOne(context,id);
-        user.getAccounts().add(account);
-        account.setOwner(user);
-        update(context,id, user);
-        return account;
     }
 
     public String hash(String input) {
@@ -61,6 +56,21 @@ public class UserService extends BaseService<User> {
         Collection<User> values = getMap().values(emailPredicate);
         if ((values != null) && values.size() == 1) {
             return values.iterator().next();
+        }
+        return null;
+    }
+
+    @POST
+    @Path("{userId}/addParticipant")
+    @Secured({Role.COMPANY_ADMIN, Role.NESTUP_ADMIN})
+    public Participant addParticipant(@Context ContainerRequestContext context, @PathParam("userId") String userId, Participant entity) {
+        if (entity != null) {
+            User user = getOne(context, userId);
+            if (user != null) {
+                entity.setUser(user);
+                participantService.doCreate(entity);
+                return entity;
+            }
         }
         return null;
     }

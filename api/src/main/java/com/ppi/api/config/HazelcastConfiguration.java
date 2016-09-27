@@ -3,13 +3,8 @@ package com.ppi.api.config;
 import com.hazelcast.config.*;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spring.transaction.HazelcastTransactionManager;
-import com.ppi.api.model.BaseEntity;
-import com.ppi.api.model.User;
-import com.ppi.api.model.Organization;
-import com.ppi.api.model.data.BaseEntityRepository;
-import com.ppi.api.model.data.JPAMapStore;
-import com.ppi.api.model.data.OrganizationRepository;
-import com.ppi.api.model.data.UserRepository;
+import com.ppi.api.model.*;
+import com.ppi.api.model.data.*;
 import com.ppi.api.service.OrgStructureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,6 +25,15 @@ public class HazelcastConfiguration {
     UserRepository userRepository;
 
     @Autowired
+    ParticipantRepository participantRepository;
+
+    @Autowired
+    PortfolioInstrumentRepository portfolioInstrumentRepository;
+
+    @Autowired
+    InstrumentRepository instrumentRepository;
+
+    @Autowired
     OrganizationRepository organizationRepository;
 
     @Autowired
@@ -44,9 +48,13 @@ public class HazelcastConfiguration {
     @Bean
     public Config config() {
         MapConfig userMapConfig = buildUserMapConfig();
+        MapConfig participantMapConfig = buildParticipantMapConfig();
+        MapConfig portfolioInstrumentMapConfig = buildPortfolioInstrumentMapConfig();
+        MapConfig instrumentMapConfig = buildInstrumentMapConfig();
         MapConfig organizationMapConfig = buildOrganizationMapConfig();
         MultiMapConfig orgStructureMultiMapConfig = buildOrgStructureMultiMapConfig();
-        return new Config().addMapConfig(userMapConfig).addMapConfig(organizationMapConfig)
+        return new Config().addMapConfig(userMapConfig).addMapConfig(participantMapConfig).addMapConfig(organizationMapConfig)
+                .addMapConfig(portfolioInstrumentMapConfig).addMapConfig(instrumentMapConfig)
                 .addMultiMapConfig(orgStructureMultiMapConfig);
     }
 
@@ -74,6 +82,35 @@ public class HazelcastConfiguration {
         MapIndexConfig organizationIndexConfig = new MapIndexConfig("organizationId", false);
         userMapConfig.addMapIndexConfig(organizationIndexConfig);
         return userMapConfig;
+    }
+
+    private MapConfig buildParticipantMapConfig() {
+        MapConfig participantMapConfig = buildMapConfig(Participant.MAP_NAME, participantRepository);
+        MapIndexConfig ownerIndexConfig = new MapIndexConfig("ownerId", false);
+        participantMapConfig.addMapIndexConfig(ownerIndexConfig);
+        MapIndexConfig organizationIndexConfig = new MapIndexConfig("organizationId", false);
+        participantMapConfig.addMapIndexConfig(organizationIndexConfig);
+        return participantMapConfig;
+    }
+
+    private MapConfig buildPortfolioInstrumentMapConfig() {
+        MapConfig portfolioInstrumentMapConfig = buildMapConfig(PortfolioInstrument.MAP_NAME, portfolioInstrumentRepository);
+        MapIndexConfig ownerIndexConfig = new MapIndexConfig("ownerId", false);
+        portfolioInstrumentMapConfig.addMapIndexConfig(ownerIndexConfig);
+        MapIndexConfig portfolioIndexConfig = new MapIndexConfig("portfolioId", false);
+        portfolioInstrumentMapConfig.addMapIndexConfig(portfolioIndexConfig);
+        MapIndexConfig instrumentIndexConfig = new MapIndexConfig("instrumentId", false);
+        portfolioInstrumentMapConfig.addMapIndexConfig(instrumentIndexConfig);
+        return portfolioInstrumentMapConfig;
+    }
+
+    private MapConfig buildInstrumentMapConfig() {
+        MapConfig instrumentMapConfig = buildMapConfig(Instrument.MAP_NAME, instrumentRepository);
+        MapIndexConfig tickerSymbolIndexConfig = new MapIndexConfig("tickerSymbol", false);
+        instrumentMapConfig.addMapIndexConfig(tickerSymbolIndexConfig);
+        MapIndexConfig styleBoxIndexConfig = new MapIndexConfig("styleBox", false);
+        instrumentMapConfig.addMapIndexConfig(styleBoxIndexConfig);
+        return instrumentMapConfig;
     }
 
     private <T extends BaseEntity> MapConfig buildMapConfig(String mapName, BaseEntityRepository<T> repository) {

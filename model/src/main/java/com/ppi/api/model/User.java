@@ -33,10 +33,6 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
     private String email;
     @XmlTransient
     private String password;
-    private int age;
-    @Column(name = "retirement_age")
-    private int retirementAge;
-    private double salary;
 
     @XmlTransient
     @Transient
@@ -44,10 +40,6 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
 
     @Column(name = "organization_id")
     private String organizationId;
-
-    @XmlTransient
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "owner")
-    private List<Account> accounts;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "roles", joinColumns = @JoinColumn(name = "user_id"))
@@ -59,14 +51,11 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
         super(MAP_NAME);
     }
 
-    public User(String firstName, String lastName, String email, String password, int age, int retirementAge, double salary, String organizationId, Set<Role> roles) {
+    public User(String firstName, String lastName, String email, String password, String organizationId, Set<Role> roles) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.age = age;
-        this.retirementAge = retirementAge;
-        this.salary = salary;
         this.organizationId = organizationId;
         this.roles = roles;
     }
@@ -117,34 +106,11 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
         this.password = password;
     }
 
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public int getRetirementAge() {
-        return retirementAge;
-    }
-
-    public void setRetirementAge(int retirementAge) {
-        this.retirementAge = retirementAge;
-    }
-
-    public double getSalary() {
-        return salary;
-    }
-
-    public void setSalary(double salary) {
-        this.salary = salary;
-    }
-
     public Organization getOrganization() {
         if (organization == null && organizationId != null && hazelcastInstance != null) {
             IMap<String, Organization> map = hazelcastInstance.getMap(Organization.MAP_NAME);
             organization = map.get(organizationId);
+            if (organization != null) organization.setHazelcastInstance(hazelcastInstance);
         }
         return organization;
     }
@@ -159,20 +125,6 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
         return organizationId;
     }
 
-    public void addAccount(Account account) {
-        getAccounts().add(account);
-        account.setOwner(this);
-    }
-
-    public List<Account> getAccounts() {
-        if (accounts == null) accounts = new ArrayList<>();
-        return accounts;
-    }
-
-    public void setAccounts(List<Account> accounts) {
-        this.accounts = accounts;
-    }
-
     public Set<Role> getRoles() {
         return roles;
     }
@@ -182,15 +134,13 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
     }
 
     @Override
-    public void copyFrom(User other) {
+    public User copyFrom(User other) {
         this.firstName = other.firstName;
         this.lastName = other.lastName;
         this.email = other.email;
         this.password = other.password;
-        this.age = other.age;
-        this.retirementAge = other.retirementAge;
-        this.salary = other.salary;
         this.roles = new HashSet<>(other.roles);
+        return this;
     }
 
 
@@ -203,7 +153,6 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", accounts=" + accounts +
                 ", roles=" + roles +
                 '}';
     }
@@ -216,11 +165,7 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
         out.writeUTF(lastName);
         out.writeUTF(email);
         out.writeUTF(password);
-        out.writeInt(age);
-        out.writeInt(retirementAge);
-        out.writeDouble(salary);
         out.writeUTF(organizationId);
-        out.writeObject(accounts);
         out.writeObject(roles);
     }
 
@@ -232,11 +177,7 @@ public class User extends BaseEntity<User> implements OrganizationOwned, UserOwn
         this.lastName = in.readUTF();
         this.email = in.readUTF();
         this.password = in.readUTF();
-        this.age = in.readInt();
-        this.retirementAge = in.readInt();
-        this.salary = in.readDouble();
         this.organizationId = in.readUTF();
-        this.accounts = in.readObject();
         this.roles = in.readObject();
     }
 }

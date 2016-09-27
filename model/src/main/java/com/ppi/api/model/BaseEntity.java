@@ -33,7 +33,7 @@ public abstract class BaseEntity<T extends BaseEntity> implements Serializable, 
     @Column(name = "id", nullable = false, columnDefinition = "VARCHAR(64)")
     protected String id = UUID.randomUUID().toString();
 
-    public BaseEntity() {
+    protected BaseEntity() {
     }
 
     public BaseEntity(String mapName) {
@@ -97,5 +97,10 @@ public abstract class BaseEntity<T extends BaseEntity> implements Serializable, 
         this.hazelcastInstance = hazelcastInstance;
     }
 
-    public abstract void copyFrom(T other);
+    /**
+     * Copy the fields from the other instance. Should return "this" to enable fluent API
+     * @param other other instance to copy from
+     * @return this
+     */
+    public abstract T copyFrom(T other);
 }

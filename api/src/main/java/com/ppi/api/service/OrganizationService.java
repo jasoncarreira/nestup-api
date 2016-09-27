@@ -39,7 +39,6 @@ public class OrganizationService extends BaseService<Organization> {
     public User addUser(@Context ContainerRequestContext context, @PathParam("id") String id, User user) {
         Organization organization = getOne(context, id);
         if (organization != null) {
-            user.getAccounts().forEach(account -> account.setOwner(user));
             organization.addUser(user);
             userService.doCreate(user);
             return user;

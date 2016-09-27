@@ -4,6 +4,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.query.PredicateBuilder;
 import com.ppi.api.model.BaseEntity;
+import com.ppi.api.model.PortfolioInstrument;
 import com.ppi.api.model.Role;
 import com.ppi.api.model.User;
 import com.ppi.api.security.NestupSecurityContext;
